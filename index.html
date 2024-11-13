@@ -24,10 +24,10 @@
       text-align: center;
     }
     #input, #output{
-      width: 50vw;
+      width: 80vw;
+      max-width: 600px;
       font-size: 4vw;
       border: none;
-      
       outline: none;
       background: none;
       text-align: center;
@@ -39,18 +39,19 @@
     }
 
     #input {
-      border-bottom: 2px solid var(--primary);
+      border-bottom: 1px solid var(--primary);
     }
 
     #output {
       font-size: 3vw;
+      font-family: 'Courier New', Courier, monospace;
     }
     
   </style>
 </head>
 <body>
   <main>
-    <div>
+    <div id="content">
       <input 
         type="text"
         id="input"
@@ -60,41 +61,48 @@
       <div id="output" class="">
         response...
       </div>
+      <div id="loading" class="d-none">
+        <div class="spinner-border text-primary" role="status">
+          <span class="sr-only">Loading...</span>
+        </div>  
+      </div>
     </div>
   </main>
   <script>
     const init = () => {
       const debug = true;
+      const loading = document.querySelector("#loading");
+      const content = document.querySelector("#content");
       const input = document.querySelector("#input");
       const output = document.querySelector("#output");
       console.log("DOM fully loaded and parsed");
       input.focus();
       if(debug) {
-        const testQUestion = "la sai una barzeletta";
-        input.value = testQUestion;
-        getAnswer(testQUestion);
+        const testQuestion = "la sai una barzeletta";
+        input.value = testQuestion;
+        getAnswer(testQuestion);
       }
+      // on input focus select all text
+      input.addEventListener("focus", (e) => {
+        input.select();
+      });
       // catch the enter press
       input.addEventListener("keypress", (e) => {
         if (e.key === "Enter") {
           console.log("Enter pressed");
-          const question = e.target.value;
-          // add ? if the question does not end with ?
-          if (!question.endsWith("?")) {
-            question += "?";
-          }
+          const question = input.value;
           getAnswer(question);
-          input.value = "";
         }
       });
     };
 
     const getAnswer = async (question) => {
-      /* 
-        call url https://api.openai.com/v1/chat/completions
-        passing 2 headers one for content-type and the other for the authorization
-      */
-      const openai_api_key = "apu_key_here";
+      output.classList.add("d-none");
+      loading.classList.remove("d-none");
+      input.disabled = true;
+      if (!question.endsWith("?")) question += "?";
+      input.value = question;
+      const openai_api_key = "your_openai_api_key";
       const url = "https://api.openai.com/v1/chat/completions";
       const data = {
         model: "gpt-4o-mini",
@@ -117,9 +125,12 @@
         },
         body: JSON.stringify(data)
       });
+      output.classList.remove("d-none");
+      loading.classList.add("d-none");
+      input.disabled = false;
       const json = await response.json();
       console.log(json);  
-      output.innerText = json.choices[0].message.content;
+      output.innerText = `"${json.choices[0].message.content}"`;
     };
 
 
