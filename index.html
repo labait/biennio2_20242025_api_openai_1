@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    :root {
+      --background: lemonchiffon;
+      --primary: #999;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: var(--background);
+    }
+    main {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      text-align: center;
+    }
+    #input, #output{
+      width: 50vw;
+      font-size: 4vw;
+      border: none;
+      
+      outline: none;
+      background: none;
+      text-align: center;
+      color: var(--primary);
+      &::placeholder {
+        color: var(--primary);
+        opacity: 0.3; /* Firefox */
+      }
+    }
+
+    #input {
+      border-bottom: 2px solid var(--primary);
+    }
+
+    #output {
+      font-size: 3vw;
+    }
+    
+  </style>
+</head>
+<body>
+  <main>
+    <div>
+      <input 
+        type="text"
+        id="input"
+        placeholder="Ask Me Anything"
+        class="mb-4"
+      />
+      <div id="output" class="">
+        response...
+      </div>
+    </div>
+  </main>
+  <script>
+    const init = () => {
+      const debug = true;
+      const input = document.querySelector("#input");
+      const output = document.querySelector("#output");
+      console.log("DOM fully loaded and parsed");
+      input.focus();
+      if(debug) {
+        const testQUestion = "la sai una barzeletta";
+        input.value = testQUestion;
+        getAnswer(testQUestion);
+      }
+      // catch the enter press
+      input.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          console.log("Enter pressed");
+          const question = e.target.value;
+          // add ? if the question does not end with ?
+          if (!question.endsWith("?")) {
+            question += "?";
+          }
+          getAnswer(question);
+          input.value = "";
+        }
+      });
+    };
+
+    const getAnswer = async (question) => {
+      /* 
+        call url https://api.openai.com/v1/chat/completions
+        passing 2 headers one for content-type and the other for the authorization
+      */
+      const openai_api_key = "apu_key_here";
+      const url = "https://api.openai.com/v1/chat/completions";
+      const data = {
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: "you are a rude friend who wants to cut it short, he answers with something random to give the impression of being annoyed, but in the end he always gives the correct answer with humor and sarcasm, he uses some swear words, without exaggerating, use the style of ricky gervais, he always answers in Italian"
+          },
+          {
+            role: "user",
+            content: question
+          }
+        ]
+      };
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${openai_api_key}`
+        },
+        body: JSON.stringify(data)
+      });
+      const json = await response.json();
+      console.log(json);  
+      output.innerText = json.choices[0].message.content;
+    };
+
+
+    document.addEventListener("DOMContentLoaded", init);
+  </script>
+</body>
+</html>
